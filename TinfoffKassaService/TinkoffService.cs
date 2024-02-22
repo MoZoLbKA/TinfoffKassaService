@@ -69,13 +69,35 @@ namespace TinfoffKassaService
         private string GetToken(Dictionary<string, object> content)
         {
             Dictionary<string, object> values = content;
-            values.Add("Password", "fjdsjgidufgjiufd");
-            values.OrderBy(x => x.Key);
+            values.Add("Password", "ываываывавыа");
+            values = values.OrderBy(x => x.Key).ToDictionary();
             string s = string.Join("", values.Values);
             byte[] messageBytes = Encoding.UTF8.GetBytes(s);
             byte[] hashValue = SHA256.HashData(messageBytes);
-            values.Remove("Password"); ;
-            return Convert.ToHexString(hashValue);
+            content.Remove("Password");
+            return Convert.ToHexString(hashValue).ToLower();
+        }
+        public async Task CancelPayment(string paymentId)
+        {
+            var dict = new Dictionary<string, object>()
+        {
+            { "TerminalKey" , "1706276729818DEMO" },
+            {"PaymentId" , paymentId},
+        };
+            dict.Add("Token", GetToken(dict));
+            using HttpClient client = _httpClientFactory.CreateClient();
+            try
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                using StringContent jsonContent = new(JsonSerializer.Serialize(dict));
+                jsonContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                var response = await client.PostAsync("https://securepay.tinkoff.ru/v2/Cancel", jsonContent);
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
         }
     }
 }
