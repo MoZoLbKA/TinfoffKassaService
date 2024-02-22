@@ -10,26 +10,27 @@ namespace TinfoffKassaService
 {
     public class TinkoffService
     {
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContext;
         private readonly IHttpClientFactory _httpClientFactory;
-        public TinkoffService(HttpContext httpContext,IHttpClientFactory httpClientFactory)
+        public TinkoffService(IHttpContextAccessor httpContext, IHttpClientFactory httpClientFactory)
         {
             _httpContext = httpContext;
             _httpClientFactory = httpClientFactory;
         }
-        public async Task<string> SendInit(PaymentVm payment)        
+        public async Task<string> SendInit(PaymentVm payment)
         {
-            var dict = new Dictionary<string, object>()
-            {
-                { "TerminalKey" , "findgiufig" },
-                {"OrderId" , payment.OrderId},
-                {"Amount" , payment.Amount},
-                {"SuccessURL" , $"{_httpContext.Request.Scheme}://{_httpContext.Request.Host}/OnSuccess?{payment.OrderId}"},
-            };
-            dict.Add("Token", GetToken(dict));
-            using HttpClient client = _httpClientFactory.CreateClient();
             try
             {
+                var dict = new Dictionary<string, object>()
+                {
+                    { "TerminalKey" , "findgiufig" },
+                    {"OrderId" , payment.OrderId},
+                    {"Amount" , payment.Amount},
+                    {"SuccessURL" , $"{_httpContext.HttpContext.Request.Scheme}://{_httpContext.HttpContext.Request.Host}/OnSuccess?{payment.OrderId}"},
+                };
+                dict.Add("Token", GetToken(dict));
+                using HttpClient client = _httpClientFactory.CreateClient();
+
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 using StringContent jsonContent = new(JsonSerializer.Serialize(dict));
                 jsonContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
